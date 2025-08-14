@@ -1,32 +1,40 @@
 <?php
-$servername = "localhost";
-$dbname = "challenge";
-$username = "root"; // your DB username
-$password = "";     // your DB password
+$db = new SQLite3('challenge.db');
 
-$conn = new mysqli($servername, $username, $password, $dbname);
-if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
-}
+// Check if form submitted
+if(isset($_POST['username']) && isset($_POST['password'])){
+    $username = $_POST['username'];
+    $password = $_POST['password'];
 
-if (isset($_POST['login'])) {
-    $user = $_POST['username'];
-    $pass = $_POST['password'];
+    // WARNING: vulnerable to SQL injection intentionally
+    $query = "SELECT * FROM users WHERE username='$username' AND password='$password'";
+    $result = $db->query($query);
 
-    // Vulnerable SQL query (intentionally)
-    $sql = "SELECT * FROM users WHERE username='$user' AND password='$pass'";
-    $result = $conn->query($sql);
-
-    if ($result->num_rows > 0) {
-        echo "Welcome! Here is your flag: <b>flag{sql_injection_success}</b>";
+    if($row = $result->fetchArray()){
+        if($row['username'] === 'admin'){
+            echo "<h2>Success! Flag: flag{sql_injection_rocks}</h2>";
+        } else {
+            echo "<h2>Welcome, {$row['username']}!</h2>";
+        }
     } else {
-        echo "Login failed. Try again.";
+        echo "<h2>Invalid login!</h2>";
     }
 }
 ?>
 
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Login</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<h1>Login</h1>
 <form method="POST">
-    Username: <input type="text" name="username"/><br>
-    Password: <input type="text" name="password"/><br>
-    <input type="submit" name="login" value="Login"/>
+    <input type="text" name="username" placeholder="Username" required><br><br>
+    <input type="text" name="password" placeholder="Password" required><br><br>
+    <button type="submit">Login</button>
 </form>
+</body>
+</html>
